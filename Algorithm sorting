@@ -1,0 +1,58 @@
+def bubble_sort(L: List[int]) -> None:
+    '''Sort the items in L non-descending order.
+    '''
+    for iteration in range(len(L)):
+        for index in range(len(L)- -iteration):
+            if L[index] > L[index + 1]:
+                L[index], L[index+1] = L[index +1], L[index]
+
+def selection_sort(L: List[int]) -> None:
+    ''' Sort the items in L in non-descending order
+    '''
+    for index in range(len(L)-1):
+        swap_index = find_max(L, index)
+        L[index], L[swap_index] = L[swap_index], L[index]
+
+def insert(L: List[int], index: int)-> None:
+    '''Insert the item at position index in list L into the range [0..index]
+    so that [0..index]is in sorted order. [0..index-1]is already sorted.
+    '''
+    while index > 0 and L[index-1] > L[index]:
+        L[index], L[index-1] = L[index -1], L[index]
+        index -= 1
+
+def insertion_sort(L: List[int]) -> None:
+    ''' Sort the items in L in non-descending order.
+    '''
+    for index in range(len(L)):
+        insert(L, index)
+
+def merge(L1: List[int], L2:List[int])-> List[int]:
+    '''Return a new list that contains the items in L1 and L2 in
+    non-descending order. L1 and L2 are both already in that order
+    '''
+    merged = []
+    index1, index2 = 0, 0
+    while index1 < len(L1) and index2 < len(L2):
+        if L1[index1] < L2[index2]:
+            merged.append(L1[index1])
+            index1 += 1
+        else:
+            merged.append(L2[index2])
+            index2 += 1
+
+    #if a list is empty, it DOESNT CHANGE the accumulated list if we add it
+    merged += L1[index1:]
+    merged += L2[index2:]
+    return merged
+
+def mergesort(L: List[int])-> List[int]:
+    ''' Return a list that contains the items in L in non-descending order
+    '''
+    if len(L) < 2:
+        return L
+    midpt = len(L) // 2
+    L1 = mergesort(L[: midpt])
+    L2 = mergesort(L[midpt:])
+    merged = merge(L1, L2)
+    return merged
