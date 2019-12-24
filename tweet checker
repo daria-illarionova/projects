@@ -1,0 +1,189 @@
+import math
+
+# Maximum number of characters in a valid tweet.
+MAX_TWEET_LENGTH = 50
+
+# The first character in a hashtag.
+HASHTAG_SYMBOL = '#'
+
+# The first character in a mention.
+MENTION_SYMBOL = '@'
+
+# Underscore is the only non-alphanumeric character that can be part
+# of a word (or username) in a tweet.
+UNDERSCORE = '_'
+
+SPACE = ' '
+
+
+def is_valid_tweet(text: str) -> bool:
+    ''' Return True IFF the potential tweet contains between 1 and
+    MAX_TWEET_LENGTH characters, inclusive.
+
+    >>> is_valid_tweet('Hello Twitter!')
+    True
+    >>> is_valid_tweet('')
+    False
+    >>> is_valid_tweet(2 * 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    False
+    '''
+    return (len(text) <= MAX_TWEET_LENGTH) and (len(text) >= 1)
+
+
+def compare_tweet_lengths(tweet1: str, tweet2: str) -> int:
+    '''Return one of three integers to indicate the difference
+    between the length of the two tweets;
+    1: if the first tweet is longer than the second.
+    -1: if the second tweet is longer than the first.
+    0: if the tweets have the same length.
+    >>> compare_tweet_lengths('Im very tired right now', 'True')
+    1
+    >>> compare_tweet_lengths('AbC', 'abcDEF')
+    -1
+    >>> compare_tweet_lengths('ABC', 'abc')
+    0
+    '''
+    if len(tweet1) > len(tweet2):
+        return 1
+    if len(tweet1) < len(tweet2):
+        return -1
+    if len(tweet1) == len(tweet2):
+        return 0
+
+
+def add_hashtag(orig_tweet: str, tweet_word: str) -> str:
+    '''Return a potential tweet if the tweet is still valid after appending a
+    space, hash symbol, and tweet_word to the end of the orig_tweet.
+    Otherwise return the original tweet.
+    >>> add_hashtag('I like', 'csc108')
+    'I like #csc108'
+    >>> add_hashtag('I like', 20 * 'csc108')
+    'I like'
+    '''
+    new_tweet = orig_tweet + SPACE + HASHTAG_SYMBOL + tweet_word
+    if len(new_tweet) <= MAX_TWEET_LENGTH:
+        return new_tweet
+    else:
+        return orig_tweet
+
+
+def helper_function(orig_tweet: str, tweet_word: str, constant: str) -> bool:
+    clean_tweet = clean(orig_tweet)
+    split_tweet = clean_tweet.split()
+    maybe_tweet_word = ''
+    for i in split_tweet:
+        if i[0] == constant:
+            maybe_tweet_word = i
+        if len(maybe_tweet_word) == len(constant + tweet_word):
+            return True
+
+    return False
+
+
+def contains_hashtag(orig_tweet: str, tweet_word: str) -> bool:
+    '''Return True if tweet_word appears within orig_tweet and
+    is appended at the end of a hashtag (made up of the hash symbol).
+    >>> contains_hashtag('I like #csc108', 'csc108')
+    True
+    >>> contains_hashtag('I like #csc108', 'csc')
+    False
+    >>> contains_hashtag('this hashtag has #An_Underscore', 'An_Underscore')
+    True
+    >>> contains_hashtag('#The #hash #symbol not missing.', 'symbol')
+    True
+    >>> contains_hashtag('not #onlypartial #hashtag word @here #only', 'only')
+    True
+    '''
+    a = helper_function(orig_tweet, tweet_word, HASHTAG_SYMBOL)
+    return a
+
+
+def is_mentioned(orig_tweet: str, tweet_word: str) -> bool:
+    '''Return True IFF the the orig_tweet contains a mention
+    made up of the mention symbol and the exact tweet_word.
+    >>> is_mentioned('Go @Raptors', 'Raptors')
+    True
+    >>> is_mentioned('Go @Raptors', 'Raps')
+    False
+    >>> is_mentioned('this mention has @An_Underscore', 'An_Underscore')
+    True
+    >>> is_mentioned('@the @at @symbol is present', 'symbol')
+    True
+    >>> is_mentioned('not @onlypartial @mention word #here @only', 'only')
+    True
+    '''
+    b = helper_function(orig_tweet, tweet_word, MENTION_SYMBOL)
+    return b
+
+
+def add_mention_exclusive(orig_tweet: str, tweet_word: str) -> str:
+    '''Return the potential tweet IFF the orig_tweet doesn't already mention
+    the tweetWord and the potential tweet is still valid after a space, mention symbol,
+    tweet_word are appended to the end of the orig_tweet.
+    Otherwise,return the orig_tweet.
+    >>> add_mention_exclusive('Go Raptors!', 'Raptors')
+    'Go Raptors! @Raptors'
+    >>> add_mention_exclusive('Go @Raptors!', 'Raptors')
+    'Go @Raptors!'
+    >>> add_mention_exclusive('#does @not? contain, mention; word!', 'foobar')
+    '#does @not? contain, mention; word! @foobar'
+    >>> add_mention_exclusive('Non_mention w, #contained at @start', 'Non_mention')
+    'Non_mention w, #contained at @start @Non_mention'
+    '''
+    if is_mentioned(orig_tweet, tweet_word):
+        return orig_tweet
+    else:
+        return orig_tweet + SPACE + MENTION_SYMBOL + tweet_word
+
+
+def num_tweets_required(message: str) -> int:
+    '''Return the minimum number of tweets that would be required to communicate the entire message.
+    >>> num_tweets_required('First dad joke: My boss told me to have a good day... so i went home.')
+    2
+    >>> num_tweets_required('I proposed to my ex-wife. But she said no. She believes I’m just after my money.')
+    2
+    '''
+    number_of_tweets = math.ceil(len(message) / MAX_TWEET_LENGTH)
+    return number_of_tweets
+
+
+def get_nth_tweet(message: str, n: int) -> str:
+    '''Return the nth valid tweet in the sequence of tweets within a message.
+    >>> get_nth_tweet('This message is fifty characters long, this fifty.', 0)
+    'This message is fifty characters long, this fifty.'
+    >>> get_nth_tweet('This message is fifty characters long. This message is fifty characters long. ', 0)
+    'This message is fifty characters long. This messag'
+    >>> get_nth_tweet('This message is fifty characters long, this fifty.', 1)
+    ''
+    >>> get_nth_tweet('This message is fifty characters long. This message is fifty characters long. ', 1)
+    'e is fifty characters long. '
+    '''
+    if n > num_tweets_required(message):
+        return ''
+
+    num_tweets_skipped = n
+    index = num_tweets_skipped * MAX_TWEET_LENGTH
+    return message[index: index + (MAX_TWEET_LENGTH)]
+
+
+def clean(text: str) -> str:
+    '''Return text with every non-alphanumeric character, except for
+    HASHTAG_SYMBOL, MENTION_SYMBOL, and UNDERSCORE, replaced with a
+    SPACE, and each HASHTAG_SYMBOL replaced with a SPACE followed by
+    the HASHTAG_SYMBOL, and each MENTION_SYMBOL replaced with a SPACE
+    followed by a MENTION_SYMBOL.
+
+    >>> clean('A! lot,of punctuation?!!')
+    'A  lot of punctuation   '
+    >>> clean('With#hash#tags? and@mentions?in#twe_et #end')
+    'With #hash #tags  and @mentions in #twe_et  #end'
+    '''
+    clean_str = ''
+    for char in text:
+        if char.isalnum() or char == UNDERSCORE:
+            clean_str = clean_str + char
+        elif char == HASHTAG_SYMBOL or char == MENTION_SYMBOL:
+            clean_str = clean_str + SPACE + char
+        else:
+            clean_str = clean_str + SPACE
+    return clean_str
